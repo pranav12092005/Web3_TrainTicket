@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fair Ticket Booking</title>
+  <link rel="stylesheet" href="Passenger contract.css">
+</head>
+<body>
+  <h1>HYBRID TICKET BOOKING</h1>
+  <h1>TEAM THUNDERS ⚡</h1>
+  <div>
+    <button id="connectWallet">Connect Wallet</button>
+    <p id="walletAddress">Wallet Address: Not connected</p>
+  </div>
+
+  <div>
+    <h2>Register Your Click</h2>
+    <br><button id="clickKey">Click to Register</button>
+    <p id="clickKeyStatus"></p>
+    <p id="paymentgate"></p>
+  </div>
+
+  <div>
+    <h2>Eligible Users</h2>
+    <br><button id="getEligibleUsers">Fetch Eligible Users</button>
+    <ul id="eligibleUsersList"></ul>
+  </div>
+
+  <div>
+    <h2>Waitlist</h2>
+    <br><button id="getWaitlist">Fetch Waitlist</button>
+    <ul id="waitlistList"></ul>
+  </div>
+
+  <div>
+    <h2>Cancel Ticket</h2>
+    <br><button id="cancelTicket">Cancel Your Ticket</button>
+    <p id="cancelTicketStatus"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

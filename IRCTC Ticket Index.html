@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRCTC Ticket Booking</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="https://via.placeholder.com/50x50" alt="IRCTC Logo">
+            <h1>IRCTC Ticket Booking</h1>
+        </div>
+        <nav class="navbar">
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Trains</a></li>
+                <li><a href="#">PNR Status</a></li>
+                <li><a href="#">Contact Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2>Book Your Ticket</h2>
+        <form action="/submit-booking" method="POST">
+            <div class="form-group">
+                <label for="from">From:</label>
+                <input type="text" id="from" name="from" placeholder="Enter starting station" required>
+            </div>
+            <div class="form-group">
+                <label for="to">To:</label>
+                <input type="text" id="to" name="to" placeholder="Enter destination station" required>
+            </div>
+            <div class="form-group">
+                <label for="date">Date of Journey:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="class">Class:</label>
+                <select id="class" name="class" required>
+                    <option value="" disabled selected>Select Class</option>
+                    <option value="sleeper">Sleeper (SL)</option>
+                    <option value="ac3">AC 3 Tier (3A)</option>
+                    <option value="ac2">AC 2 Tier (2A)</option>
+                    <option value="ac1">AC First Class (1A)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="quota">Quota:</label>
+                <select id="quota" name="quota" required>
+                    <option value="" disabled selected>Select Quota</option>
+                    <option value="general">General</option>
+                    <option value="tatkal">Tatkal</option>
+                    <option value="ladies">Ladies</option>
+                </select>
+            </div>
+            <button type="submit" class="btn"><a href= "Passenger Book.html" style="color: antiquewhite;"></p>Search Trains</a></button>
+        </form>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 IRCTC. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Details Form</title>
+    <link rel="stylesheet" href="Passenger Book.css">
+</head>
+<body>
+    <header class="header">
+        <h1>IRCTC Ticket Booking - Passenger Details</h1>
+    </header>
+    <main class="container">
+        <h2>Fill Passenger Details</h2>
+        <form id="passengerForm">
+            <div class="form-group">
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" name="name" placeholder="Enter full name" required>
+            </div>
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input type="number" id="age" name="age" placeholder="Enter your age" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender:</label>
+                <select id="gender" name="gender" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" placeholder="Enter phone number" pattern="[0-9]{10}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" name="email" placeholder="Enter email address" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Address:</label>
+                <textarea id="address" name="address" placeholder="Enter your full address" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="captcha">Captcha:</label>
+                <div class="captcha-container">
+                    <span id="captchaText"></span>
+                    <button type="button" id="refreshCaptcha">Refresh</button>
+                </div>
+                <input type="text" id="captchaInput" name="captcha" placeholder="Enter captcha text" required>
+            </div>
+            <button type="submit" class="btn"><a href="Passenger contract.html">Submit Details</a></button>
+        </form>
+        <div id="message" style="margin-top: 20px; display: none;"></div>
+    </main>
+    <footer class="footer">
+        <p>© 2024 IRCTC. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Captcha Generation
+        const captchaTextElement = document.getElementById('captchaText');
+        const refreshCaptchaButton = document.getElementById('refreshCaptcha');
+        const form = document.getElementById('passengerForm');
+        const captchaInput = document.getElementById('captchaInput');
+        const message = document.getElementById('message');
+
+        function generateCaptcha() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let captcha = '';
+            for (let i = 0; i < 6; i++) {
+                captcha += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return captcha;
+        }
+
+        function setCaptcha() {
+            const captcha = generateCaptcha();
+            captchaTextElement.textContent = captcha;
+        }
+
+        refreshCaptchaButton.addEventListener('click', () => {
+            setCaptcha();
+        });
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const enteredCaptcha = captchaInput.value;
+            const generatedCaptcha = captchaTextElement.textContent;
+
+            if (enteredCaptcha === generatedCaptcha) {
+                message.style.display = 'block';
+                message.style.color = 'green';
+                message.textContent = 'Form submitted successfully!';
+                
+                // Collect Passenger Details (for demonstration)
+                const passengerDetails = {
+                    name: document.getElementById('name').value,
+                    age: document.getElementById('age').value,
+                    gender: document.getElementById('gender').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value,
+                };
+                console.log('Passenger Details:', passengerDetails);
+
+                // Clear the form
+                form.reset();
+                setCaptcha();
+            } else {
+                message.style.display = 'block';
+                message.style.color = 'red';
+                message.textContent = 'Captcha does not match. Please try again.';
+                captchaInput.value = '';
+            }
+        });
+
+        // Initialize the captcha
+        setCaptcha();
+    </script>
+</body>
+</html>

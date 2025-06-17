@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Gateway</title>
+    <link rel="stylesheet" href="payment.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        <h1>Payment Gateway</h1>
+    </div>
+    <div class="container">
+        <h2>Complete Your Payment</h2>
+        <form action="/submit-payment" method="POST">
+            <label for="amount">Amount:</label>
+            <input type="text" id="amount" name="amount" />
+
+            
+            <label for="paymentMethod">Payment Method:</label>
+            <select id="paymentMethod" name="paymentMethod" required>
+                <option value="" disabled selected>Select Payment Method</option>
+                <option value="card">Card</option>
+                <option value="upi">UPI</option>
+            </select>
+
+        
+            <div id="cardDetails">
+                <label for="cardNumber">Card Number:</label>
+                <input type="text" id="cardNumber" name="cardNumber" placeholder="Enter your card number" />
+
+                <label for="expiry">Expiry Date:</label>
+                <input type="text" id="expiry" name="expiry" placeholder="MM/YY" />
+
+                <label for="cvv">CVV:</label>
+                <input type="text" id="cvv" name="cvv" placeholder="CVV" />
+            </div>
+
+            
+            <div id="upiDetails">
+                <label for="upiId">UPI ID:</label>
+                <input type="text" id="upiId" name="upiId" placeholder="Enter your UPI ID" />
+            </div>
+
+            <button type="submit">Pay Now</button>
+        </form>
+    </div>
+    <footer>
+        © 2024 IRCTC Payment Gateway. All Rights Reserved.
+    </footer>
+    <script>
+        const paymentMethod = document.getElementById('paymentMethod');
+        const cardDetails = document.getElementById('cardDetails');
+        const upiDetails = document.getElementById('upiDetails');
+
+        paymentMethod.addEventListener('change', () => {
+            if (paymentMethod.value === 'card') {
+                cardDetails.style.display = 'block';
+                upiDetails.style.display = 'none';
+            } else if (paymentMethod.value === 'upi') {
+                cardDetails.style.display = 'none';
+                upiDetails.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
