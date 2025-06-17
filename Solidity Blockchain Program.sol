@@ -4,12 +4,15 @@ pragma solidity ^0.8.21;
 contract FairTicketBooking {
     address public owner;
     uint256 public totalTickets;
+    uint256 public ticketPrice;
     bool public registrationOpen;
 
     struct User {
         address userAddress;
         uint256 timestamp;
         bool isEligible;
+        bool hasPaid;
+        bool isConfirmed;
     }
 
     struct WaitlistEntry {
@@ -37,22 +40,27 @@ contract FairTicketBooking {
     event SlotReleased(address indexed user);
     event WaitlistPromoted(address indexed user);
     event UserCancelled(address indexed user);
+    event PaymentReceived(address indexed user, uint256 amount);
+    event RefundIssued(address indexed user, uint256 amount);
+    event ConfirmedForBankTransfer(address indexed user);
 
-    constructor(uint256 _totalTickets) {
+    constructor(uint256 _totalTickets, uint256 _ticketPriceInWei) {
         owner = msg.sender;
         totalTickets = _totalTickets;
+        ticketPrice = _ticketPriceInWei;
         registrationOpen = false;
     }
 
-    
     function clickKey() external registrationActive {
-        require(users[msg.sender].timestamp == 0, "User already clicked the key");
+        require(users[msg.sender].timestamp == 0, "Already clicked");
 
         uint256 currentTimestamp = block.timestamp;
         users[msg.sender] = User({
             userAddress: msg.sender,
             timestamp: currentTimestamp,
-            isEligible: false
+            isEligible: false,
+            hasPaid: false,
+            isConfirmed: false
         });
 
         emit UserClickedKey(msg.sender, currentTimestamp);
@@ -68,24 +76,70 @@ contract FairTicketBooking {
         }
     }
 
-    
-    function releaseSlot(address userAddress) external onlyOwner {
-        _removeUserFromEligible(userAddress);
+    function payForTicket() external payable {
+        require(!users[msg.sender].hasPaid, "Already paid");
+        require(users[msg.sender].timestamp != 0, "Not registered");
+        require(msg.value == ticketPrice, "Incorrect payment");
+
+        users[msg.sender].hasPaid = true;
+        emit PaymentReceived(msg.sender, msg.value);
     }
 
-
     function cancelEligibility() external {
-        require(users[msg.sender].isEligible, "User is not eligible");
-        _removeUserFromEligible(msg.sender);
+        _handleCancellation(msg.sender);
         emit UserCancelled(msg.sender);
     }
 
-    function _removeUserFromEligible(address userAddress) internal {
-        require(users[userAddress].isEligible, "User is not eligible");
+    function releaseSlot(address userAddress) external onlyOwner {
+        _handleCancellation(userAddress);
+    }
 
-        users[userAddress].isEligible = false;
+    function _handleCancellation(address userAddress) internal {
+        User storage user = users[userAddress];
+        require(user.isEligible || _isInWaitlist(userAddress), "Not eligible or waitlisted");
 
-      
+        if (user.hasPaid && !user.isConfirmed) {
+            user.hasPaid = false;
+            payable(userAddress).transfer(ticketPrice);
+            emit RefundIssued(userAddress, ticketPrice);
+        }
+
+        if (user.isEligible) {
+            user.isEligible = false;
+            _removeFromEligible(userAddress);
+            emit SlotReleased(userAddress);
+        }
+
+        _removeFromWaitlist(userAddress);
+
+        _promoteWaitlist();
+    }
+
+    function _promoteWaitlist() internal {
+        if (waitlist.length > 0) {
+            WaitlistEntry memory nextInLine = waitlist[0];
+            address nextUser = nextInLine.userAddress;
+            users[nextUser].isEligible = true;
+            eligibleUsers.push(nextUser);
+
+            if (users[nextUser].hasPaid) {
+                users[nextUser].isConfirmed = true;
+                emit ConfirmedForBankTransfer(nextUser); // IRCTC backend will monitor this event
+            }
+
+            _shiftWaitlist();
+            emit WaitlistPromoted(nextUser);
+        }
+    }
+    function _shiftWaitlist() internal {
+    for (uint256 i = 0; i < waitlist.length - 1; i++) {
+        waitlist[i] = waitlist[i + 1];
+    }
+    waitlist.pop();
+}
+
+
+    function _removeFromEligible(address userAddress) internal {
         for (uint256 i = 0; i < eligibleUsers.length; i++) {
             if (eligibleUsers[i] == userAddress) {
                 eligibleUsers[i] = eligibleUsers[eligibleUsers.length - 1];
@@ -93,46 +147,61 @@ contract FairTicketBooking {
                 break;
             }
         }
+    }
 
-        emit SlotReleased(userAddress);
-
-        
-        if (waitlist.length > 0) {
-            WaitlistEntry memory nextInLine = waitlist[0];
-            users[nextInLine.userAddress].isEligible = true;
-            eligibleUsers.push(nextInLine.userAddress);
-
-            
-            for (uint256 i = 0; i < waitlist.length - 1; i++) {
-                waitlist[i] = waitlist[i + 1];
+    function _removeFromWaitlist(address userAddress) internal {
+        for (uint256 i = 0; i < waitlist.length; i++) {
+            if (waitlist[i].userAddress == userAddress) {
+                for (uint256 j = i; j < waitlist.length - 1; j++) {
+                    waitlist[j] = waitlist[j + 1];
+                }
+                waitlist.pop();
+                break;
             }
-            waitlist.pop();
-
-            emit WaitlistPromoted(nextInLine.userAddress);
         }
     }
 
-   
+    function _isInWaitlist(address userAddress) internal view returns (bool) {
+        for (uint256 i = 0; i < waitlist.length; i++) {
+            if (waitlist[i].userAddress == userAddress) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function openRegistration() external onlyOwner {
-        require(!registrationOpen, "Registration is already open");
+        require(!registrationOpen, "Already open");
         registrationOpen = true;
         emit RegistrationOpened();
     }
 
-   
     function closeRegistration() external onlyOwner {
-        require(registrationOpen, "Registration is already closed");
+        require(registrationOpen, "Already closed");
         registrationOpen = false;
         emit RegistrationClosed();
     }
 
-    
     function getEligibleUsers() external view returns (address[] memory) {
         return eligibleUsers;
     }
 
-   
     function getWaitlist() external view returns (WaitlistEntry[] memory) {
         return waitlist;
     }
+
+    function withdrawForIRCTC(address[] calldata confirmedUsers) external onlyOwner {
+        uint256 total = 0;
+        for (uint i = 0; i < confirmedUsers.length; i++) {
+            address u = confirmedUsers[i];
+            if (users[u].isConfirmed && users[u].hasPaid) {
+                users[u].hasPaid = false; // prevent re-use
+                total += ticketPrice;
+            }
+        }
+
+        payable(owner).transfer(total); // IRCTC backend will handle bank transfer off-chain
+    }
+
+    receive() external payable {}
 }
